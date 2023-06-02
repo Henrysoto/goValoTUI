@@ -117,6 +117,7 @@ func (ui *TUI) setupTUI() {
 
 func (ui *TUI) setupEventHandlers() {
 	ui.inputPlayerField.SetDoneFunc(func(key tcell.Key) {
+		ui.displayMessage.Clear()
 		if key == tcell.KeyEnter {
 			err := ui.inputSearch(ui.inputPlayerField.GetText())
 			if err != nil {
@@ -133,15 +134,34 @@ func (ui *TUI) setupEventHandlers() {
 	})
 
 	ui.tablePlayers.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		row, col := ui.tablePlayers.GetSelection()
-		if event.Key() == tcell.KeyEnter {
-			player, err := ui.store.selectPlayerWithName(ui.tablePlayers.GetCell(row, col).Text)
+		ui.displayMessage.Clear()
+		row, _ := ui.tablePlayers.GetSelection()
+		switch event.Key() {
+		case tcell.KeyEnter:
+			player, err := ui.store.selectPlayerWithIndex(row) //selectPlayerWithName(ui.tablePlayers.GetCell(row, col).Text)
 			if err != nil {
 				ui.displayError(err)
 				return event
 			}
 			ui.fillPlayerDetails(player)
 			return event
+		case tcell.KeyCtrlS:
+			err := ui.store.removePlayerWithIndex(row)
+			if err != nil {
+				ui.displayError(err)
+				return event
+			}
+			ui.tablePlayers.RemoveRow(row)
+			return event
+		case tcell.KeyUp:
+			if row == 0 {
+				ui.app.SetFocus(ui.inputPlayerField)
+			}
+			return event
+		case tcell.KeyDown:
+			if row+1 == ui.tablePlayers.GetRowCount() {
+				ui.tablePlayers.Select(-1, 0)
+			}
 		}
 		return event
 	})
@@ -156,6 +176,7 @@ func (ui *TUI) fillPlayerTable(players []Player) {
 
 func (ui *TUI) fillPlayerDetails(player Player) {
 	ui.formDetails.Clear(false)
+	ui.displayMessage.Clear()
 	ui.formDetails.SetTitle(fmt.Sprintf(" Player %s details ", player.Name))
 
 	// Fetch account ranking data

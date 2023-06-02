@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"image"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 const (
@@ -16,6 +18,15 @@ const (
 	EndpointAccount                = "v1/account/%s/%s"
 	EndpointRank                   = "v1/mmr-history/eu/%s/%s"
 )
+
+var RequestErrors = map[string]string{
+	"400": "client request error",
+	"403": "connection forbidden to Riot API",
+	"404": "entity not found (private profile or incorrect username)",
+	"408": "request timeout",
+	"429": "requests rate limit exceeded (retry later)",
+	"503": "Riot API is down (retry later)",
+}
 
 // Retrieve JSON data from API Endpoints
 func GetData[T Account | AccountRank | MatchesData](endpoint string) (T, error) {
@@ -38,6 +49,11 @@ func GetData[T Account | AccountRank | MatchesData](endpoint string) (T, error) 
 		return result, err
 	}
 	defer resp.Body.Close()
+
+	// check if status is healthy (aka 200)
+	if RequestErrors[strconv.Itoa(resp.StatusCode)] != "0" && resp.StatusCode != 200 {
+		return result, fmt.Errorf(RequestErrors[strconv.Itoa(resp.StatusCode)])
+	}
 
 	// Unmarshal JSON body to struct
 	err = json.NewDecoder(resp.Body).Decode(&result)
