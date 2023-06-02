@@ -11,6 +11,7 @@ goValoTUI is a terminal user interface used to display Valorant player's match s
 # Dependencies
 - [tview](https://github.com/rivo/tview)
 - [tcell](https://github.com/gdamore/tcell/v2)
+- [testify](https://github.com/stretchr/testify)
  
  # Preview (WIP)
  ![goValoTUI](https://github.com/Henrysoto/goValoTUI/blob/master/screenshots/screenshot.png?raw=true)
