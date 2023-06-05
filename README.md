@@ -32,3 +32,10 @@ goValoTUI is a terminal user interface used to display Valorant player's match s
  
  ## Preview (WIP)
  ![goValoTUI](https://github.com/Henrysoto/goValoTUI/blob/master/screenshots/screenshot.png?raw=true)
+
+## TODO
+- Edit form player details to display properly art picture and item's padding
+- Retrieve all matches and not only last five matches
+  - Add pagination to match's table
+- Add dropdown menu to choose between Competitive and Unrated matches
+- Add columns sorting
