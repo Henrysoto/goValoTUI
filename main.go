@@ -8,12 +8,7 @@ import (
 var players []Player
 
 func main() {
-	fmt.Println("[goValoTUI]")
-
-	// account, err := getAccount()
-	// if err != nil {
-	// 	log.Panicln(err)
-	// }
+	fmt.Printf("[goValoTUI %s]", version)
 
 	s := NewStore()
 	players, err := s.getPlayers()
@@ -21,13 +16,8 @@ func main() {
 		log.Panicln(err)
 	}
 
-	ui, err := NewTUI(s)
-	if err != nil {
-		log.Panicln(err)
-	}
-
+	ui := NewTUI(s)
 	ui.fillPlayerTable(players)
-	ui.displayError(fmt.Errorf("test message"))
 
 	if err = ui.app.SetRoot(ui.flexRoot, true).EnableMouse(true).Run(); err != nil {
 		log.Panicln(err)

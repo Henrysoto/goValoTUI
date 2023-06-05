@@ -37,14 +37,14 @@ type TUI struct {
 	store *Store
 }
 
-func NewTUI(s *Store) (*TUI, error) {
+func NewTUI(s *Store) *TUI {
 	ui := TUI{
 		app:   tview.NewApplication(),
 		store: s,
 	}
 
 	ui.setupTUI()
-	return &ui, nil
+	return &ui
 }
 
 func (ui *TUI) setupTUI() {
