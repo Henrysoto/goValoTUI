@@ -8,7 +8,7 @@ import (
 var players []Player
 
 func main() {
-	fmt.Printf("[goValoTUI %s]", version)
+	fmt.Printf("[goValoTUI %s]\n", version)
 
 	s := NewStore()
 	players, err := s.getPlayers()
