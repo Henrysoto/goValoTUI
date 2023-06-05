@@ -24,7 +24,7 @@ goValoTUI is a terminal user interface used to display Valorant player's match s
  #### Keybindings :
  - `Up/Down` arrow to navigate.
  - `Ctrl+S` to remove player from players list.
- - `Enter` on input field will search for the player's profile and add it to the list.
+ - `Enter` on input field will search for the player's profile, add it to the list and display it's data.
  - `Enter` on player list will fetch data for selected player.
  - `Ctrl+C` to exit program.
 
