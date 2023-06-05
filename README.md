@@ -26,6 +26,7 @@ goValoTUI is a terminal user interface used to display Valorant player's match s
  - `Ctrl+S` to remove player from players list.
  - `Enter` on input field will search for the player's profile and add it to the list.
  - `Enter` on player list will fetch data for selected player.
+ - `Ctrl+C` to exit program.
 
  ## Golang version
  `go1.20.2`
