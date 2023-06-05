@@ -40,8 +40,8 @@ func NewStore() *Store {
 	if err != nil {
 		log.Panicln(err)
 	}
-	dirPath := filepath.Join(home, ".config", "goValoTUI", "data") //fmt.Sprintf("%s/.config/govalotui/data", home)
-	filePath := filepath.Join(dirPath, "players.csv")              //fmt.Sprintf("%s/players.csv", dirPath)
+	dirPath := filepath.Join(home, ".config", "goValoTUI", "data")
+	filePath := filepath.Join(dirPath, "players.csv")
 	err = createFile(dirPath, filePath)
 	if err != nil {
 		log.Panicln(err)
