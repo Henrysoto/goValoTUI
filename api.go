@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -43,9 +42,6 @@ func GetData[T Account | AccountRank | MatchesData](endpoint string) (T, error) 
 	// Retrieve response from request
 	resp, err := client.Do(req)
 	if err != nil {
-		if resp.StatusCode == http.StatusServiceUnavailable {
-			log.Println("Error: Servers unavailable.")
-		}
 		return result, err
 	}
 	defer resp.Body.Close()
@@ -64,7 +60,7 @@ func GetData[T Account | AccountRank | MatchesData](endpoint string) (T, error) 
 	return result, nil
 }
 
-// Return Image object from (Account).Data.Card.Small URL
+// Return Image object from URL
 func getImageFromURL(URL string) (image.Image, error) {
 	var img image.Image
 	data, err := http.Get(URL)
