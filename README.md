@@ -22,10 +22,10 @@ goValoTUI is a terminal user interface used to display Valorant player's match s
  ./goValoTUI
  ```
  #### Keybindings :
- - `Up/Down` arrow to navigate
- - `Ctrl+S` to remove player from list
- - `Enter` on input field will search for player tag
- - `Enter` on player list will fetch data for selected player
+ - `Up/Down` arrow to navigate.
+ - `Ctrl+S` to remove player from players list.
+ - `Enter` on input field will search for the player's profile and add it to the list.
+ - `Enter` on player list will fetch data for selected player.
 
  ## Golang version
  `go1.20.2`
@@ -34,8 +34,8 @@ goValoTUI is a terminal user interface used to display Valorant player's match s
  ![goValoTUI](https://github.com/Henrysoto/goValoTUI/blob/master/screenshots/screenshot.png?raw=true)
 
 ## TODO
-- Edit form player details to display properly art picture and item's padding
-- Retrieve all matches and not only last five matches
-  - Add pagination to match's table
-- Add dropdown menu to choose between Competitive and Unrated matches
-- Add columns sorting
+- Edit form player details to display properly art picture and item's padding.
+- Retrieve all matches and not only last five matches.
+  - Add pagination to match's table.
+- Add dropdown menu to choose between Competitive and Unrated matches.
+- Add columns sorting.
