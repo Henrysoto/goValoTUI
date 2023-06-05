@@ -5,7 +5,7 @@
 goValoTUI is a terminal user interface used to display Valorant player's match statistics.
 
 ## Functionalities
-- Basic CRUD interactions on a csv file to store player's info.
+- Basic CRUD operations on a csv file to store player's info.
 - Display up-to-date statistics about the player.
 
 ## Dependencies
