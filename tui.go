@@ -138,7 +138,7 @@ func (ui *TUI) setupEventHandlers() {
 		row, _ := ui.tablePlayers.GetSelection()
 		switch event.Key() {
 		case tcell.KeyEnter:
-			player, err := ui.store.selectPlayerWithIndex(row) //selectPlayerWithName(ui.tablePlayers.GetCell(row, col).Text)
+			player, err := ui.store.selectPlayerWithIndex(row)
 			if err != nil {
 				ui.displayError(err)
 				return event
@@ -197,33 +197,37 @@ func (ui *TUI) fillPlayerDetails(player Player) {
 				return
 			}
 		}
-		// Retrieve player card
-		card, err := GetData[Account](fmt.Sprintf(BaseAPI+EndpointAccount, player.Name, player.Tag))
+	}
+
+	// Retrieve player card
+	card, err := GetData[Account](fmt.Sprintf(BaseAPI+EndpointAccount, player.Name, player.Tag))
+	if err != nil {
+		ui.displayError(err)
+		// Use default art encoded in base64
+		base := base64.NewDecoder(base64.StdEncoding, strings.NewReader(artDefault64))
+		img, err = png.Decode(base)
 		if err != nil {
 			ui.displayError(err)
-			// Use default art encoded in base64
-			base := base64.NewDecoder(base64.StdEncoding, strings.NewReader(artDefault64))
-			img, err = png.Decode(base)
-			if err != nil {
-				ui.displayError(err)
-				return
-			}
-		} else {
-			// Otherwise fetch image from URL
-			img, err = getImageFromURL(card.Data.Card.Wide)
-			if err != nil {
-				ui.displayError(fmt.Errorf("could not retrieve image from URL"))
-			}
+			return
+		}
+	} else {
+		// Otherwise fetch image from URL
+		img, err = getImageFromURL(card.Data.Card.Wide)
+		if err != nil {
+			ui.displayError(fmt.Errorf("could not retrieve image from URL"))
 		}
 	}
 
 	// Fill form with data
 	ui.formDetails.
 		AddImage("Art", img, 0, 6, 256*256*256).
-		AddTextView("", "", 1, 1, true, false).
 		AddTextView("Username", GetUsername(player.Name, player.Tag), 0, 0, true, false).
-		AddTextView("Rank", player.Rank, 0, 0, true, false).
-		AddTextView("ELO", strconv.Itoa(acc.Data[0].Elo), 0, 0, true, false)
+		AddTextView("Rank", player.Rank, 0, 0, true, false)
+	if len(acc.Data) >= 1 {
+		ui.formDetails.AddTextView("ELO", strconv.Itoa(acc.Data[0].Elo), 0, 0, true, false)
+	} else {
+		ui.formDetails.AddTextView("ELO", "?", 0, 0, true, false)
+	}
 
 	// Player matches
 	matches, err := GetData[MatchesData](fmt.Sprintf(BaseAPI+EndpointMatchesByName, player.Name, player.Tag))
@@ -232,70 +236,80 @@ func (ui *TUI) fillPlayerDetails(player Player) {
 		return
 	}
 
-	// Update title with matches count
-	ui.tableMatch.SetTitle(fmt.Sprintf(" Matches (%d) ", len(matches.Data)))
+	if len(matches.Data) >= 1 {
+		// Update title with matches count
+		ui.tableMatch.SetTitle(fmt.Sprintf(" Matches (%d) ", len(matches.Data)))
 
-	// Set headers
-	ui.tableMatch.SetCell(0, 0, tview.NewTableCell(FormatStringTable(" ", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
-	ui.tableMatch.SetCell(0, 1, tview.NewTableCell(FormatStringTable("Map", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter)) //.SetSeparator(tview.BoxDrawingsLightDoubleDashVertical)
-	ui.tableMatch.SetCell(0, 2, tview.NewTableCell(FormatStringTable("Agent", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
-	ui.tableMatch.SetCell(0, 3, tview.NewTableCell(FormatStringTable("Score", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
-	ui.tableMatch.SetCell(0, 4, tview.NewTableCell(FormatStringTable("Kills", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
-	ui.tableMatch.SetCell(0, 5, tview.NewTableCell(FormatStringTable("Deaths", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
-	ui.tableMatch.SetCell(0, 6, tview.NewTableCell(FormatStringTable("K/D Ratio", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
-	ui.tableMatch.SetCell(0, 7, tview.NewTableCell(FormatStringTable("Headshots", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
-	ui.tableMatch.SetCell(0, 8, tview.NewTableCell(FormatStringTable("Bodyshots", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
-	ui.tableMatch.SetCell(0, 9, tview.NewTableCell(FormatStringTable("Damage", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
+		// Set headers
+		ui.tableMatch.SetCell(0, 1, tview.NewTableCell(FormatStringTable("Map", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
+		ui.tableMatch.SetCell(0, 2, tview.NewTableCell(FormatStringTable("Agent", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
+		ui.tableMatch.SetCell(0, 3, tview.NewTableCell(FormatStringTable("Score", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
+		ui.tableMatch.SetCell(0, 4, tview.NewTableCell(FormatStringTable("Kills", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
+		ui.tableMatch.SetCell(0, 5, tview.NewTableCell(FormatStringTable("Deaths", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
+		ui.tableMatch.SetCell(0, 6, tview.NewTableCell(FormatStringTable("K/D Ratio", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
+		ui.tableMatch.SetCell(0, 7, tview.NewTableCell(FormatStringTable("Headshots", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
+		ui.tableMatch.SetCell(0, 8, tview.NewTableCell(FormatStringTable("Bodyshots", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
+		ui.tableMatch.SetCell(0, 9, tview.NewTableCell(FormatStringTable("Damage", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
+		ui.tableMatch.SetCell(0, 10, tview.NewTableCell(FormatStringTable("Competitive", 12)).SetTextColor(tcell.ColorYellow).SetAlign(tview.AlignCenter))
 
-	// Add empty row as separator
-	ui.tableMatch.SetCellSimple(1, 0, " ")
-	ui.tableMatch.SetCellSimple(1, 1, " ")
-	ui.tableMatch.SetCellSimple(1, 2, " ")
-	ui.tableMatch.SetCellSimple(1, 3, " ")
-	ui.tableMatch.SetCellSimple(1, 4, " ")
-	ui.tableMatch.SetCellSimple(1, 5, " ")
-	ui.tableMatch.SetCellSimple(1, 6, " ")
-	ui.tableMatch.SetCellSimple(1, 7, " ")
-	ui.tableMatch.SetCellSimple(1, 8, " ")
-	ui.tableMatch.SetCellSimple(1, 9, " ")
+		// Add empty row as separator
+		ui.tableMatch.SetCellSimple(1, 1, " ")
+		ui.tableMatch.SetCellSimple(1, 2, " ")
+		ui.tableMatch.SetCellSimple(1, 3, " ")
+		ui.tableMatch.SetCellSimple(1, 4, " ")
+		ui.tableMatch.SetCellSimple(1, 5, " ")
+		ui.tableMatch.SetCellSimple(1, 6, " ")
+		ui.tableMatch.SetCellSimple(1, 7, " ")
+		ui.tableMatch.SetCellSimple(1, 8, " ")
+		ui.tableMatch.SetCellSimple(1, 9, " ")
+		ui.tableMatch.SetCellSimple(1, 10, " ")
 
-	// Set content
-	var pID int
-	for index, match := range matches.Data {
-		// Get map played
-		ui.tableMatch.SetCell(index+2, 1, tview.NewTableCell(match.Metadata.Map).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
-		// Get player index from match
-		for i, p := range match.Players.AllPlayers {
-			if p.Name == player.Name {
-				pID = i
+		// Set content
+		var pID int
+		for index, match := range matches.Data {
+			// Get map played
+			ui.tableMatch.SetCell(index+2, 1, tview.NewTableCell(match.Metadata.Map).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
+			// Get player index from match
+			for i, p := range match.Players.AllPlayers {
+				if p.Name == player.Name {
+					pID = i
+				}
 			}
+
+			agent := match.Players.AllPlayers[pID].Character
+			score := match.Players.AllPlayers[pID].Stats.Score
+			kills := match.Players.AllPlayers[pID].Stats.Kills
+			deaths := match.Players.AllPlayers[pID].Stats.Deaths
+			hs := match.Players.AllPlayers[pID].Stats.Headshots
+			bs := match.Players.AllPlayers[pID].Stats.Bodyshots
+			dmg := match.Players.AllPlayers[pID].DamageMade
+			kd := float64(kills) / float64(deaths)
+			var comp string
+			if match.Metadata.Mode == "Competitive" {
+				comp = "\u2705"
+			} else {
+				comp = "\u274c"
+			}
+
+			// Get agent played
+			ui.tableMatch.SetCell(index+2, 2, tview.NewTableCell(agent).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
+			// Get player score
+			ui.tableMatch.SetCell(index+2, 3, tview.NewTableCell(fmt.Sprintf("%d", score)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
+			// Get player kills
+			ui.tableMatch.SetCell(index+2, 4, tview.NewTableCell(fmt.Sprintf("%d", kills)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
+			// Get player deaths
+			ui.tableMatch.SetCell(index+2, 5, tview.NewTableCell(fmt.Sprintf("%d", deaths)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
+			// Compute player kill/death ratio
+			ui.tableMatch.SetCell(index+2, 6, tview.NewTableCell(fmt.Sprintf("%.3f", kd)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
+			// Get headshots count
+			ui.tableMatch.SetCell(index+2, 7, tview.NewTableCell(fmt.Sprintf("%d", hs)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
+			// Get bodyshots count
+			ui.tableMatch.SetCell(index+2, 8, tview.NewTableCell(fmt.Sprintf("%d", bs)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
+			// Get damage count
+			ui.tableMatch.SetCell(index+2, 9, tview.NewTableCell(fmt.Sprintf("%d", dmg)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
+			// Is comp match
+			ui.tableMatch.SetCell(index+2, 10, tview.NewTableCell(fmt.Sprintf("%s", comp)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
 		}
-
-		agent := match.Players.AllPlayers[pID].Character
-		score := match.Players.AllPlayers[pID].Stats.Score
-		kills := match.Players.AllPlayers[pID].Stats.Kills
-		deaths := match.Players.AllPlayers[pID].Stats.Deaths
-		hs := match.Players.AllPlayers[pID].Stats.Headshots
-		bs := match.Players.AllPlayers[pID].Stats.Bodyshots
-		dmg := match.Players.AllPlayers[pID].DamageMade
-		kd := float64(kills) / float64(deaths)
-
-		// Get agent played
-		ui.tableMatch.SetCell(index+2, 2, tview.NewTableCell(agent).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
-		// Get player score
-		ui.tableMatch.SetCell(index+2, 3, tview.NewTableCell(fmt.Sprintf("%d", score)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
-		// Get player kills
-		ui.tableMatch.SetCell(index+2, 4, tview.NewTableCell(fmt.Sprintf("%d", kills)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
-		// Get player deaths
-		ui.tableMatch.SetCell(index+2, 5, tview.NewTableCell(fmt.Sprintf("%d", deaths)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
-		// Compute player kill/death ratio
-		ui.tableMatch.SetCell(index+2, 6, tview.NewTableCell(fmt.Sprintf("%.3f", kd)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
-		// Get headshots count
-		ui.tableMatch.SetCell(index+2, 7, tview.NewTableCell(fmt.Sprintf("%d", hs)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
-		// Get bodyshots count
-		ui.tableMatch.SetCell(index+2, 8, tview.NewTableCell(fmt.Sprintf("%d", bs)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
-		// Get damage count
-		ui.tableMatch.SetCell(index+2, 9, tview.NewTableCell(fmt.Sprintf("%d", dmg)).SetTextColor(tcell.ColorWhite).SetAlign(tview.AlignLeft))
 	}
 }
 
@@ -361,29 +375,5 @@ func (ui *TUI) inputSearch(fullPlayerName string) error {
 
 func (ui *TUI) displayError(err error) {
 	ui.displayMessage.Clear()
-	ui.displayMessage.SetText(fmt.Sprintf("[DEBUG]: %s", err.Error()))
+	ui.displayMessage.SetText(fmt.Sprintf("[INFO]: %s", err.Error()))
 }
-
-// func initFormView(app *tview.Application, player Account) *tview.Flex {
-// 	img, err := getImageFromURL(player.Data.Card.Small)
-// 	if err != nil {
-// 		log.Printf("Could not retrieve profile picture. Error: %v", err)
-// 	}
-// 	fw := tview.NewForm().
-// 		AddImage(
-// 			fmt.Sprintf("Level %d", player.Data.AccountLevel),
-// 			img,
-// 			0,
-// 			0,
-// 			256*256*256,
-// 		).
-// 		AddTextView("Player name", player.Data.Name, 40, 1, true, false).
-// 		AddTextView("Player tag", fmt.Sprintf("#%s", player.Data.Tag), 20, 1, true, false).
-// 		AddButton("Quit", func() {
-// 			app.Stop()
-// 		})
-// 	fw.SetBorder(true).SetTitle("Valorant TUI Profile").SetTitleAlign(tview.AlignLeft)
-// 	return tview.NewFlex().SetDirection(tview.FlexRow).AddItem(
-// 		fw, 10, 1, true,
-// 	)
-// }
